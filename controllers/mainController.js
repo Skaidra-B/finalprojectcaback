@@ -1,22 +1,38 @@
 const bcrypt = require("bcrypt")
-const userSchema = require("../schemes/userSchema")
+const userSchema = require("../models/userSchema")
 
 
 module.exports = {
     register: async (req, res) => {
-        const {email, passOne: password, isAdmin} = req.body
-        const hash = await bcrypt.hash(password, 10)
-        const user = new userSchema()
-        user.email = email
-        user.password = hash
-        user.admin = isAdmin
-
-        const userExists = await userSchema.findOne({email})
-        if (!userExists) {
+        const {email, password} = req.body
+        try {
+            const hash = await bcrypt.hash(password, 10)
+            const user = await new userSchema({
+                email: email.toLowerCase(),
+                password: hash,
+                notifications: []
+            })
             await user.save()
-            res.send({success: true})
+            console.log('useris', user.username, 'uzregistruotas')
+            res.send({success: true, message: "Užsiregistravote sėkmingai, galite prisijungti"})
+        } catch (err) {
+            console.log(err)
         }
     },
+    // register: async (req, res) => {
+    //     const {email, passOne: password, isAdmin} = req.body
+    //     const hash = await bcrypt.hash(password, 10)
+    //     const user = new userSchema()
+    //     user.email = email
+    //     user.password = hash
+    //     user.admin = isAdmin
+    //
+    //     const userExists = await userSchema.findOne({email})
+    //     if (!userExists) {
+    //         await user.save()
+    //         res.send({success: true})
+    //     }
+    // },
     login: async (req, res) => {
         const {email, password, stayLogged} = req.body
         const myUser = await userSchema.findOne({email})
@@ -40,7 +56,6 @@ module.exports = {
     },
     addPhoto: async (req, res) => {
         const {photoUrl} = req.body
-        // console.log(req.body)
 
         const apartment = new apartmentSchema()
         apartment.photo = photoUrl

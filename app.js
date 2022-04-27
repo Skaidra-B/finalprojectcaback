@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const mongoose = require("mongoose")
 const cors = require("cors")
-const router = require("./router/mainRouter")
+const router = require("./routes/mainRouter")
 const session = require("express-session")
 require("dotenv").config()
 
