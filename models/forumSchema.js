@@ -14,15 +14,22 @@ const forumSchema = new Schema({
         type: String,
         required: true
     },
+    time: {
+        type: Number,
+        required: false
+    },
     posts: [{
         username: {
-            type: String
+            type: String,
+            required: true
         },
         text: {
-            type: String
+            type: String,
+            required: true
         },
         time: {
-            type: Number
+            type: Number,
+            required: false
         },
     }]
 

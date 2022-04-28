@@ -1,24 +1,142 @@
 const bcrypt = require("bcrypt")
 const userSchema = require("../models/userSchema")
+const forumSchema = require("../models/forumSchema")
 
 
 module.exports = {
     register: async (req, res) => {
-        const {email, password} = req.body
+        const {username, email, passOne} = req.body
         try {
-            const hash = await bcrypt.hash(password, 10)
+            const hash = await bcrypt.hash(passOne, 10)
             const user = await new userSchema({
+                username,
                 email: email.toLowerCase(),
                 password: hash,
                 notifications: []
             })
             await user.save()
-            console.log('useris', user.username, 'uzregistruotas')
-            res.send({success: true, message: "Užsiregistravote sėkmingai, galite prisijungti"})
+            console.log(user.username, 'is registered')
+            res.send({success: true, message: "Registration successful, you can login"})
         } catch (err) {
             console.log(err)
         }
     },
+    stayLoggedIn: async (req, res) => {
+        const {stayLoggedIn} = req.session
+        const {email} = req.session
+        try {
+            if (stayLoggedIn) {
+                const findUser = await userSchema.findOne({email})
+                if (findUser) return res.send({success: true, user: findUser})
+            }
+            res.send({success: false})
+        } catch (err) {
+            console.log(err)
+        }
+    },
+    login: async (req, res) => {
+        const {email, password, stayLoggedIn} = req.body
+        try {
+            const findUser = await userSchema.findOne({email: email.toLowerCase()})
+            if (findUser) {
+                const compareResult = await bcrypt.compare(password, findUser.password)
+                if (compareResult) {
+                    req.session.email = email.toLowerCase()
+                    req.session.username = findUser.username
+                    req.session.stayLoggedIn = stayLoggedIn
+                    const user = {
+                        _id: findUser._id,
+                        username: findUser.username,
+                        email: findUser.email,
+                        image: findUser.image,
+                        notifications: findUser.notifications
+                    }
+                    return res.send({success: true, user})
+                }
+                console.log(findUser.username, 'is logged in')
+            }
+            res.send({success: false, message: 'Wrong credentials'})
+        } catch (err) {
+            console.log(err)
+        }
+    },
+    logout: async (req, res) => {
+        try {
+            req.session.email = null
+            req.session.stayLoggedIn = null
+            res.send({success: true})
+        } catch (err) {
+            console.log(err)
+        }
+    },
+    addForum: async (req, res) => {
+        const {title, ownerId} = req.body
+        const {email, username} = req.session
+        try {
+            if (username) {
+                const forum = new forumSchema({
+                    creatorId: ownerId,
+                    username,
+                    title,
+                    time: Date.now(),
+                    posts: []
+                })
+                await forum.save()
+                return res.send({success: true})
+            }
+            res.send({success: false, message: "Not logged in"})
+        } catch (err) {
+            console.log(err)
+        }
+    },
+    getAllForums: async (req, res) => {
+        const allForums = await forumSchema.find()
+        res.send({success: true, allForums})
+    },
+    getSingleForum: async (req, res) => {
+        // const {email} = req.session
+        const {_id} = req.params
+        try {
+            const forum = await forumSchema.findOne({_id})
+            return res.send({success: true, forum})
+
+        } catch (err) {
+            res.send({success: false, message: "Not logged in", err})
+        }
+        // try {
+        //     if (email) {
+        //         const forum = await forumSchema.findOne({_id})
+        //         return res.send({success: true, forum})
+        //     }
+        //     res.send({success: false, message: "Not logged in"})
+        // } catch (err) {
+        //     console.log(err)
+        // }
+    },
+    reply: async (req, res) => {
+        const {_id, userId, username, text} = req.body
+        const {email} = req.session
+
+        const user = await userSchema.findOne({_id: userId})
+        console.log(user.username)
+
+        const newPost = {
+            username,
+            text,
+            time: Date.now()
+        }
+
+        try {
+            if (email) {
+                const forum = await forumSchema.findOneAndUpdate({_id}, {$push: {posts: newPost}}, {new: true})
+                res.send({success: true, message: "Reply added"})
+            }
+        } catch (err) {
+            res.send({success: false, message: "Not logged in", err})
+        }
+    }
+
+
     // register: async (req, res) => {
     //     const {email, passOne: password, isAdmin} = req.body
     //     const hash = await bcrypt.hash(password, 10)
@@ -33,99 +151,5 @@ module.exports = {
     //         res.send({success: true})
     //     }
     // },
-    login: async (req, res) => {
-        const {email, password, stayLogged} = req.body
-        const myUser = await userSchema.findOne({email})
-        const compareResult = await bcrypt.compare(password, myUser.password)
-        if (compareResult) {
-            req.session.stayLogged = stayLogged
-
-            return res.send({success: true, user: {email, stayLogged}})
-        }
-        res.send({success: false, message: "bad credentials"})
-    },
-    stayLogged: async (req, res) => {
-        const {isLogged, email} = req.params
-        console.log(isLogged)
-        const myUser = await userSchema.findOne({email})
-        if (isLogged) {
-            res.send({success: true, user: myUser})
-        } else {
-            res.send({success: false})
-        }
-    },
-    addPhoto: async (req, res) => {
-        const {photoUrl} = req.body
-
-        const apartment = new apartmentSchema()
-        apartment.photo = photoUrl
-        apartment.city = "any"
-        apartment.price = "any"
-        apartment.description = "any"
-        apartment.start = []
-        apartment.end = []
-        await apartment.save()
-
-        res.send({success: true, id: apartment._id})
-    },
-    create: async (req, res) => {
-        const {city, price, description, apartmentId} = req.body
-        // const foundApartment = await apartmentSchema.findOne({_id: apartmentId})
-        // console.log(foundApartment)
-        const updateObject = {$set: {city, price, description}}
-
-        const updated = await apartmentSchema.findOneAndUpdate(
-            {_id: apartmentId},
-            updateObject,
-            {new: true}
-        )
-        res.send({success: true, apartment: updated})
-    },
-    getAll: async (req, res) => {
-        const products = await apartmentSchema.find()
-        res.send({success: true, products})
-    },
-    getProduct: async (req, res) => {
-        const {id} = req.params
-        const apartment = await apartmentSchema.findOne({_id: id})
-        res.send({success: true, apartment})
-    },
-    ///// calendar
-    reserve: async (req, res) => {
-        const {event} = req.body
-        console.log(req.body)
-
-        // const {startDate, endDate, apartmentId} = req.body
-        // console.log(req.body)
-
-        // const updateApartment = {$push: {start: startDate, end: endDate}}
-        // const updated = await apartmentSchema.findOneAndUpdate(
-        //     {_id: apartmentId},
-        //     updateApartment,
-        //     {new: true}
-        // )
-        // res.send({success: true, apartment: updated})
-
-    },
-    ////
-    // getEvent: async (req, res) => {
-    //     const events = await apartmentSchema.find({
-    //         start: {$gte: moment(req.query.start).toDate()},
-    //         end: {$lte: moment(req.query.end).toDate()}
-    //     })
-    //     res.send(events)
-    // },
-    filter: async (req, res) => {
-        const {city, price, availability} = req.body
-        // console.log(req.body)
-        // res.send({success: true})
-        const products = await apartmentSchema.find({
-            $or: [
-                {city}, {price: {$gte: price[0], $lte: price[1]}}
-            ]
-        })
-        // console.log(products)
-        res.send({success: true, products})
-    }
 
 }
