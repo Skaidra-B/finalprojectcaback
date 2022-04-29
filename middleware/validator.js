@@ -34,6 +34,33 @@ module.exports = {
         const {text} = req.body
         if (text.length === 0) return res.send({success: false, message: "Enter your reply"})
         next()
+    },
+    userLoggedInValidator: async (req, res, next) => {
+        const {email} = req.session
+
+        if (!email) return res.send({success: false, message: "You are not logged in"})
+
+        next()
+    },
+    checkUserInfo: async (req, res, next) => {
+        const {email} = req.session
+        const {userID} = req.params
+        if (!(!!email)) return res.send({
+            success: false,
+            message: 'You are not logged in'
+        })
+        // const user = await userSchema.findOne({_id: userID})
+        // console.log(userID, user._id) // null
+        // if (!(!!user)) return res.send({
+        //     success: false,
+        //     message: 'Cannot find user. Please register.'
+        // })
+        next()
+    },
+    pictureValidator: async (req, res, next) => {
+        const {picture} = req.body
+        if (picture.length === 0) return res.send({success: false, message: "Enter picture URL"})
+        next()
     }
 
 

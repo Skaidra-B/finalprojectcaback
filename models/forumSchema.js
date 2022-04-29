@@ -19,6 +19,10 @@ const forumSchema = new Schema({
         required: false
     },
     posts: [{
+        posterId: {
+            type: String,
+            required: true
+        },
         username: {
             type: String,
             required: true

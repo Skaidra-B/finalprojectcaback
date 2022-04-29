@@ -114,13 +114,14 @@ module.exports = {
         // }
     },
     reply: async (req, res) => {
-        const {_id, userId, username, text} = req.body
+        const {_id, posterId, username, text} = req.body
         const {email} = req.session
 
-        const user = await userSchema.findOne({_id: userId})
+        const user = await userSchema.findOne({_id: posterId})
         console.log(user.username)
 
         const newPost = {
+            posterId,
             username,
             text,
             time: Date.now()
@@ -130,6 +131,40 @@ module.exports = {
             if (email) {
                 const forum = await forumSchema.findOneAndUpdate({_id}, {$push: {posts: newPost}}, {new: true})
                 res.send({success: true, message: "Reply added"})
+            }
+        } catch (err) {
+            res.send({success: false, message: "Not logged in", err})
+        }
+    },
+    getUploadedForums:  async (req, res) => {
+        const {userId} = req.params
+        try {
+            const uploadedForums = await forumSchema.find({creatorId: userId})
+            return res.send({success: true, uploadedForums})
+        } catch (err) {
+            res.send({success: false, message: err})
+        }
+    },
+    getPosts: async (req, res) => {
+        const {userId} = req.params
+        console.log(req.params)
+        try {
+            const uploadedPosts = await forumSchema.find({"posts.posterId" : userId})
+            // const uploadedPosts = await forumSchema.find({posts: {$elemMatch: {posterId : userId}}})
+            console.log(uploadedPosts)
+            return res.send({success: true, uploadedPosts})
+        } catch (err) {
+            res.send({success: false, message: err})
+        }
+    },
+    changePicture: async (req, res) => {
+        const {userId, picture} = req.body
+        const {email} = req.session
+
+        try {
+            if (email) {
+                const updated = await forumSchema.findOneAndUpdate({_id: userId}, {$set: {image: picture}}, {new: true})
+                return res.send({success: true, updated})
             }
         } catch (err) {
             res.send({success: false, message: "Not logged in", err})
