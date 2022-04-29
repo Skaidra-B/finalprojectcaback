@@ -70,12 +70,13 @@ module.exports = {
         }
     },
     addForum: async (req, res) => {
-        const {title, ownerId} = req.body
+        const {title, ownerImg, ownerId} = req.body
         const {email, username} = req.session
         try {
             if (username) {
                 const forum = new forumSchema({
                     creatorId: ownerId,
+                    creatorImg: ownerImg,
                     username,
                     title,
                     time: Date.now(),
@@ -114,14 +115,15 @@ module.exports = {
         // }
     },
     reply: async (req, res) => {
-        const {_id, posterId, username, text} = req.body
+        const {_id, posterId, username, text, posterImg} = req.body
         const {email} = req.session
 
         const user = await userSchema.findOne({_id: posterId})
-        console.log(user.username)
+        // console.log(user.username)
 
         const newPost = {
             posterId,
+            posterImg,
             username,
             text,
             time: Date.now()
@@ -147,7 +149,7 @@ module.exports = {
     },
     getPosts: async (req, res) => {
         const {userId} = req.params
-        console.log(req.params)
+        // console.log(req.params)
         try {
             const uploadedPosts = await forumSchema.find({"posts.posterId" : userId})
             // const uploadedPosts = await forumSchema.find({posts: {$elemMatch: {posterId : userId}}})
@@ -160,10 +162,13 @@ module.exports = {
     changePicture: async (req, res) => {
         const {userId, picture} = req.body
         const {email} = req.session
+        console.log(req.body)
 
         try {
             if (email) {
-                const updated = await forumSchema.findOneAndUpdate({_id: userId}, {$set: {image: picture}}, {new: true})
+                const updated = await userSchema.findOneAndUpdate({_id: userId}, {$set: {image: picture}}, {new: true})
+                // const refreshUsers = await userSchema.find()
+                // const refreshForums = await forumSchema.find()
                 return res.send({success: true, updated})
             }
         } catch (err) {

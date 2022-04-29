@@ -6,6 +6,10 @@ const forumSchema = new Schema({
         type: String,
         required: true
     },
+    creatorImg: {
+        type: String,
+        required: true
+    },
     username: {
         type: String,
         required: true
@@ -20,6 +24,10 @@ const forumSchema = new Schema({
     },
     posts: [{
         posterId: {
+            type: String,
+            required: true
+        },
+        posterImg: {
             type: String,
             required: true
         },
