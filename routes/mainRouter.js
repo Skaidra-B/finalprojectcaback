@@ -1,7 +1,28 @@
 const express = require('express')
 const router = express.Router()
-const {registerValidator, loginValidator, forumUploadValidator, replyValidator, userLoggedInValidator, checkUserInfo, pictureValidator} = require("../middleware/validator")
-const {register, stayLoggedIn, login, logout, addForum, getAllForums, getSingleForum, reply, getUploadedForums, getPosts, changePicture} = require("../controllers/mainController")
+const {
+    registerValidator,
+    loginValidator,
+    forumUploadValidator,
+    replyValidator,
+    userLoggedInValidator,
+    checkUserInfo,
+    pictureValidator
+} = require("../middleware/validator")
+const {
+    register,
+    stayLoggedIn,
+    login,
+    logout,
+    addForum,
+    getAllForums,
+    getSingleForum,
+    reply,
+    getUploadedForums,
+    getPosts,
+    changePicture,
+
+} = require("../controllers/mainController")
 
 // USER
 router.post("/register", registerValidator, register)
@@ -20,13 +41,12 @@ router.post("/reply-to-forum", replyValidator, reply)
 
 
 
+
 // router.post("/addPhoto", validatePhoto, addPhoto)
 // router.post("/create", validateProduct, create)
 // router.get("/allProducts", getAll)
 // router.get("/product/:id", getProduct)
 // router.post("/filter", filter)
-
-
 
 
 module.exports = router

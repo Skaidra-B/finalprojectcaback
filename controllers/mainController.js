@@ -174,7 +174,11 @@ module.exports = {
         } catch (err) {
             res.send({success: false, message: "Not logged in", err})
         }
-    }
+    },
+    // getPaginatedPosts: async (req, res) => {
+    //     const {_id, currentPage} = req.params
+    //     console.log(req.params)
+    // }
 
 
     // register: async (req, res) => {
