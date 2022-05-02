@@ -12,7 +12,7 @@ module.exports = {
                 username,
                 email: email.toLowerCase(),
                 password: hash,
-                notifications: []
+                // notifications: []
             })
             await user.save()
             console.log(user.username, 'is registered')
@@ -49,6 +49,7 @@ module.exports = {
                         username: findUser.username,
                         email: findUser.email,
                         image: findUser.image,
+                        forumsCreated: findUser.forumsCreated,
                         notifications: findUser.notifications
                     }
                     return res.send({success: true, user})
@@ -83,6 +84,8 @@ module.exports = {
                     posts: []
                 })
                 await forum.save()
+
+                const creator = await userSchema.findOneAndUpdate({_id: ownerId}, {$push: {forumsCreated: title}}, {new: true})
                 return res.send({success: true})
             }
             res.send({success: false, message: "Not logged in"})
@@ -128,10 +131,24 @@ module.exports = {
             text,
             time: Date.now()
         }
+        const forumToFind = await forumSchema.findOne({_id})
+        // console.log(forumToFind)
+        const thatUserId = forumToFind.creatorId
+        const forumTitle = forumToFind.title
+        // console.log(thatUserId, forumTitle)
+
+        const newNotification = {
+            forumTitle,
+            replierUsername: username,
+            time: Date.now()
+        }
 
         try {
             if (email) {
                 const forum = await forumSchema.findOneAndUpdate({_id}, {$push: {posts: newPost}}, {new: true})
+                ////
+                const forumCreatorUpdate = await userSchema.findOneAndUpdate({_id: thatUserId}, {$push: {notifications: newNotification}}, {new: true})
+
                 res.send({success: true, message: "Reply added"})
             }
         } catch (err) {
@@ -152,7 +169,6 @@ module.exports = {
         // console.log(req.params)
         try {
             const uploadedPosts = await forumSchema.find({"posts.posterId" : userId})
-            // const uploadedPosts = await forumSchema.find({posts: {$elemMatch: {posterId : userId}}})
             console.log(uploadedPosts)
             return res.send({success: true, uploadedPosts})
         } catch (err) {

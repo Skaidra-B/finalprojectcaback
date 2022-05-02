@@ -19,11 +19,24 @@ const userSchema = new Schema({
         required: true,
         default: 'https://t4.ftcdn.net/jpg/00/64/67/63/360_F_64676383_LdbmhiNM6Ypzb3FM4PPuFP9rHe7ri8Ju.jpg'
     },
-    notifications: {
+    forumsCreated: {
         type: Array,
         require: true
-    }
-
+    },
+    notifications: [{
+        forumTitle: {
+            type: String,
+            required: true
+        },
+        replierUsername: {
+            type: String,
+            required: true
+        },
+        time: {
+            type: Number,
+            required: false
+        }
+    }]
 })
 
 module.exports = mongoose.model('userSchema', userSchema)
