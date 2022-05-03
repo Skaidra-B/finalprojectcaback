@@ -98,7 +98,6 @@ module.exports = {
         res.send({success: true, allForums})
     },
     getSingleForum: async (req, res) => {
-        // const {email} = req.session
         const {_id} = req.params
         try {
             const forum = await forumSchema.findOne({_id})
@@ -107,22 +106,12 @@ module.exports = {
         } catch (err) {
             res.send({success: false, message: "Not logged in", err})
         }
-        // try {
-        //     if (email) {
-        //         const forum = await forumSchema.findOne({_id})
-        //         return res.send({success: true, forum})
-        //     }
-        //     res.send({success: false, message: "Not logged in"})
-        // } catch (err) {
-        //     console.log(err)
-        // }
     },
     reply: async (req, res) => {
         const {_id, posterId, username, text, posterImg} = req.body
         const {email} = req.session
 
         const user = await userSchema.findOne({_id: posterId})
-        // console.log(user.username)
 
         const newPost = {
             posterId,
@@ -132,10 +121,8 @@ module.exports = {
             time: Date.now()
         }
         const forumToFind = await forumSchema.findOne({_id})
-        // console.log(forumToFind)
         const thatUserId = forumToFind.creatorId
         const forumTitle = forumToFind.title
-        // console.log(thatUserId, forumTitle)
 
         const newNotification = {
             forumTitle,
@@ -146,16 +133,14 @@ module.exports = {
         try {
             if (email) {
                 const forum = await forumSchema.findOneAndUpdate({_id}, {$push: {posts: newPost}}, {new: true})
-                ////
                 const forumCreatorUpdate = await userSchema.findOneAndUpdate({_id: thatUserId}, {$push: {notifications: newNotification}}, {new: true})
-
                 res.send({success: true, message: "Reply added"})
             }
         } catch (err) {
             res.send({success: false, message: "Not logged in", err})
         }
     },
-    getUploadedForums:  async (req, res) => {
+    getUploadedForums: async (req, res) => {
         const {userId} = req.params
         try {
             const uploadedForums = await forumSchema.find({creatorId: userId})
@@ -166,9 +151,8 @@ module.exports = {
     },
     getPosts: async (req, res) => {
         const {userId} = req.params
-        // console.log(req.params)
         try {
-            const uploadedPosts = await forumSchema.find({"posts.posterId" : userId})
+            const uploadedPosts = await forumSchema.find({"posts.posterId": userId})
             console.log(uploadedPosts)
             return res.send({success: true, uploadedPosts})
         } catch (err) {
@@ -183,33 +167,21 @@ module.exports = {
         try {
             if (email) {
                 const updated = await userSchema.findOneAndUpdate({_id: userId}, {$set: {image: picture}}, {new: true})
-                // const refreshUsers = await userSchema.find()
-                // const refreshForums = await forumSchema.find()
                 return res.send({success: true, updated})
             }
         } catch (err) {
             res.send({success: false, message: "Not logged in", err})
         }
     },
-    // getPaginatedPosts: async (req, res) => {
-    //     const {_id, currentPage} = req.params
-    //     console.log(req.params)
-    // }
-
-
-    // register: async (req, res) => {
-    //     const {email, passOne: password, isAdmin} = req.body
-    //     const hash = await bcrypt.hash(password, 10)
-    //     const user = new userSchema()
-    //     user.email = email
-    //     user.password = hash
-    //     user.admin = isAdmin
-    //
-    //     const userExists = await userSchema.findOne({email})
-    //     if (!userExists) {
-    //         await user.save()
-    //         res.send({success: true})
-    //     }
-    // },
-
+    deleteNotification: async (req, res) => {
+        const {notId} = req.params
+        console.log(req.params)
+        const {email} = req.session
+        try {
+            const deleted = await userSchema.findOneAndUpdate({"notifications._id": notId}, {$pull: {notifications: {_id: notId}}}, {new: true})
+            return res.send({success: true, deleted})
+        } catch (err) {
+            res.send({success: false})
+        }
+    }
 }

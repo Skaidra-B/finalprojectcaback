@@ -21,7 +21,7 @@ const {
     getUploadedForums,
     getPosts,
     changePicture,
-
+    deleteNotification
 } = require("../controllers/mainController")
 
 // USER
@@ -32,21 +32,13 @@ router.get('/logout', logout)
 router.get('/get-uploaded-forums/:userId', userLoggedInValidator, getUploadedForums)
 router.get('/get-posts/:userId', checkUserInfo, getPosts)
 router.post("/change-picture", pictureValidator, changePicture)
+router.get("/delete-notification/:notId", deleteNotification)
 
 // FORUM
 router.post("/upload", forumUploadValidator, addForum)
 router.get('/get-all-forums', getAllForums)
 router.get('/get-single-forum/:_id', getSingleForum)
 router.post("/reply-to-forum", replyValidator, reply)
-
-
-
-
-// router.post("/addPhoto", validatePhoto, addPhoto)
-// router.post("/create", validateProduct, create)
-// router.get("/allProducts", getAll)
-// router.get("/product/:id", getProduct)
-// router.post("/filter", filter)
 
 
 module.exports = router

@@ -6,13 +6,10 @@ const router = require("./routes/mainRouter")
 const session = require("express-session")
 require("dotenv").config()
 
-
 // const forumSchema = require("./models/forumSchema")
 // const { Server } = require("socket.io")
 // const http = require("http");
 // const server = http.createServer(app)
-
-
 
 app.listen(4000)
 app.use(express.json())
