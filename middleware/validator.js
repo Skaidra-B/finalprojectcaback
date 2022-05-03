@@ -62,6 +62,4 @@ module.exports = {
         if (picture.length === 0) return res.send({success: false, message: "Enter picture URL"})
         next()
     }
-
-
 }
