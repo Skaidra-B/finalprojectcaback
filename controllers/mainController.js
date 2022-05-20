@@ -11,8 +11,7 @@ module.exports = {
             const user = await new userSchema({
                 username,
                 email: email.toLowerCase(),
-                password: hash,
-                // notifications: []
+                password: hash
             })
             await user.save()
             console.log(user.username, 'is registered')
@@ -22,8 +21,7 @@ module.exports = {
         }
     },
     stayLoggedIn: async (req, res) => {
-        const {stayLoggedIn} = req.session
-        const {email} = req.session
+        const {stayLoggedIn, email} = req.session
         try {
             if (stayLoggedIn) {
                 const findUser = await userSchema.findOne({email})
@@ -162,7 +160,6 @@ module.exports = {
     changePicture: async (req, res) => {
         const {userId, picture} = req.body
         const {email} = req.session
-        console.log(req.body)
 
         try {
             if (email) {
